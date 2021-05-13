@@ -5,12 +5,15 @@ import (
   "fmt"
 )
 
+const DataSize = 128
+
 type table map[uint32]*list.Element
 
 type Cache struct {
-  ll   *list.List
-  ht   table
-  size int
+  ll     *list.List
+  ht     table
+  size   int
+  memory int
 }
 
 type Data struct {
@@ -22,7 +25,11 @@ func NewCache(size int) *Cache {
   if size <= 0 {
     return nil
   }
-  return &Cache{list.New(), make(table), size}
+  return &Cache{list.New(), make(table), size, 0}
+}
+
+func (c *Cache) SetMemory(memory int) {
+  c.memory = memory
 }
 
 func (c *Cache) String() string {
@@ -37,7 +44,7 @@ func (c *Cache) Put(key uint32, val string) {
   if el, found := c.ht[key]; !found {
     // no such key exists
     // insert new key
-    if c.ll.Len() >= c.size {
+    if c.ll.Len() >= c.size || (c.memory > 0 && c.ll.Len()*DataSize >= c.memory) {
       // LRU eviction
       data := c.ll.Remove(c.ll.Front()).(*Data)
       delete(c.ht, data.Key)

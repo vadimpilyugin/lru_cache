@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "math/rand"
+  "runtime"
   "testing"
 )
 
@@ -78,12 +79,32 @@ func BenchmarkPut(b *testing.B) {
   }
 }
 
-func BenchmarkSize(b *testing.B) {
-  const size = 100_000
-  const mod = 400_000
-  c := NewCache(size)
-  for n := 0; n < b.N; n++ {
-    c.Put(rand.Uint32()%mod, "Hello, world!")
-    c.Get(rand.Uint32() % size)
+func PrintMemUsage() {
+  var m runtime.MemStats
+  runtime.ReadMemStats(&m)
+  // For info on each, see: https://golang.org/pkg/runtime/#MemStats
+  fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
+  fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+  fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+  fmt.Printf("\tNumGC = %v\n", m.NumGC)
+}
+
+func bToMb(b uint64) float64 {
+  return float64(b) / 1024 / 1024
+}
+
+func TestMemory(t *testing.T) {
+  c := NewCache(100_000)
+  const size = 10_000
+  c.SetMemory(DataSize * size)
+  fmt.Printf("Memory limited to %f MB\n", bToMb(DataSize*size))
+  for i := 0; i < 2*size; i++ {
+    c.Put(uint32(i), fmt.Sprintf("%0128d", i))
+  }
+  PrintMemUsage()
+  if c.ll.Len() != size {
+    t.Errorf("wrong number of items in cache")
+    t.Fail()
+    return
   }
 }
