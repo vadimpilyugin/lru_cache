@@ -19,6 +19,6 @@ func main() {
   fmt.Println("c.Get(3) = ", c.Get(3))
   fmt.Printf("%v\n", c)
   c.Put(4, "str4") // {1: “str1”, 3: “str2”, 4: “str4”}
-  fmt.Println("c.Put(4) = str4\n")
+  fmt.Println("c.Put(4) = str4")
   fmt.Printf("%v\n", c)
 }

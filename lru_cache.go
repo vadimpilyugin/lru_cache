@@ -20,15 +20,17 @@ type Data struct {
 }
 
 func NewCache(size int) *Cache {
+  if size <= 0 {
+    return nil
+  }
   return &Cache{list.New(), make(table), size}
 }
 
 func (c *Cache) String() string {
   ar := []string{}
-  for i := c.ll.Front(); i != c.ll.Back(); i = i.Next() {
+  for i := c.ll.Front(); i != nil; i = i.Next() {
     ar = append(ar, fmt.Sprintf("%p:%v", i, *(i.Value.(*Data))))
   }
-  ar = append(ar, fmt.Sprintf("%p:%v", c.ll.Back(), *(c.ll.Back().Value.(*Data))))
   return fmt.Sprintf("List: %v\nHT: %v\n", ar, c.ht)
 }
 
@@ -53,7 +55,7 @@ func (c *Cache) Put(key uint32, val string) {
 func (c *Cache) Get(key uint32) string {
   if el, found := c.ht[key]; !found {
     // no such key exists
-    log.Printf("Could not find key %u in the cache\n", key)
+    log.Printf("Could not find key %d in the cache\n", key)
     return ""
   } else {
     // key exists
