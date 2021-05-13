@@ -5,6 +5,7 @@ import (
   "math/rand"
   "runtime"
   "testing"
+  "time"
 )
 
 func TestEviction(t *testing.T) {
@@ -83,9 +84,9 @@ func PrintMemUsage() {
   var m runtime.MemStats
   runtime.ReadMemStats(&m)
   // For info on each, see: https://golang.org/pkg/runtime/#MemStats
-  fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
-  fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
-  fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+  fmt.Printf("Alloc = %.2f MiB", bToMb(m.Alloc))
+  fmt.Printf("\tTotalAlloc = %.2f MiB", bToMb(m.TotalAlloc))
+  fmt.Printf("\tSys = %.2f MiB", bToMb(m.Sys))
   fmt.Printf("\tNumGC = %v\n", m.NumGC)
 }
 
@@ -93,17 +94,82 @@ func bToMb(b uint64) float64 {
   return float64(b) / 1024 / 1024
 }
 
-func TestMemory(t *testing.T) {
+func TestMemory1(t *testing.T) {
   c := NewCache(100_000)
   const size = 10_000
   c.SetMemory(DataSize * size)
-  fmt.Printf("Memory limited to %f MB\n", bToMb(DataSize*size))
+  fmt.Printf("Memory limited to %.2f MB\n", bToMb(DataSize*size))
   for i := 0; i < 2*size; i++ {
     c.Put(uint32(i), fmt.Sprintf("%0128d", i))
   }
   PrintMemUsage()
   if c.ll.Len() != size {
     t.Errorf("wrong number of items in cache")
+    t.Fail()
+    return
+  }
+}
+
+func TestMemory2(t *testing.T) {
+  c := NewCache(100_000)
+  const size = 20_000
+  c.SetMemory(DataSize * size)
+  fmt.Printf("Memory limited to %.2f MB\n", bToMb(DataSize*size))
+  for i := 0; i < 2*size; i++ {
+    c.Put(uint32(i), fmt.Sprintf("%0128d", i))
+  }
+  PrintMemUsage()
+  if c.ll.Len() != size {
+    t.Errorf("wrong number of items in cache")
+    t.Fail()
+    return
+  }
+}
+
+func TestMemory3(t *testing.T) {
+  c := NewCache(100_000)
+  const size = 40_000
+  c.SetMemory(DataSize * size)
+  fmt.Printf("Memory limited to %.2f MB\n", bToMb(DataSize*size))
+  for i := 0; i < 2*size; i++ {
+    c.Put(uint32(i), fmt.Sprintf("%0128d", i))
+  }
+  PrintMemUsage()
+  if c.ll.Len() != size {
+    t.Errorf("wrong number of items in cache")
+    t.Fail()
+    return
+  }
+}
+
+func TestMemory4(t *testing.T) {
+  c := NewCache(1_000_000)
+  const size = 400_000
+  c.SetMemory(DataSize * size)
+  fmt.Printf("Memory limited to %.2f MB\n", bToMb(DataSize*size))
+  for i := 0; i < 2*size; i++ {
+    c.Put(uint32(i), fmt.Sprintf("%0128d", i))
+  }
+  PrintMemUsage()
+  if c.ll.Len() != size {
+    t.Errorf("wrong number of items in cache")
+    t.Fail()
+    return
+  }
+}
+
+func TestTTL(t *testing.T) {
+  c := NewCache(10)
+  c.SetTTL(1)
+  c.Put(1, "key 1")
+  if c.Get(1) == "not found" {
+    t.Errorf("key already expired")
+    t.Fail()
+    return
+  }
+  time.Sleep(2 * time.Second)
+  if c.Get(1) != "not found" {
+    t.Errorf("key did not expire")
     t.Fail()
     return
   }
