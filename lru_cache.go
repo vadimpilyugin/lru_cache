@@ -42,7 +42,8 @@ func (c *Cache) SetTTL(ttl int) {
 func (c *Cache) String() string {
   ar := []string{}
   for i := c.ll.Front(); i != nil; i = i.Next() {
-    ar = append(ar, fmt.Sprintf("%p:%v", i, *(i.Value.(*Data))))
+    data := i.Value.(*Data)
+    ar = append(ar, fmt.Sprintf("%p:(%d, %s)", i, data.Key, data.Value))
   }
   return fmt.Sprintf("List: %v\nHT: %v\n", ar, c.ht)
 }
