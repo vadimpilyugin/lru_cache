@@ -3,7 +3,6 @@ package main
 import (
   "container/list"
   "fmt"
-  "log"
 )
 
 type table map[uint32]*list.Element
@@ -55,7 +54,6 @@ func (c *Cache) Put(key uint32, val string) {
 func (c *Cache) Get(key uint32) string {
   if el, found := c.ht[key]; !found {
     // no such key exists
-    log.Printf("Could not find key %d in the cache\n", key)
     return ""
   } else {
     // key exists

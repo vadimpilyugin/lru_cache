@@ -68,3 +68,22 @@ func TestOrder(t *testing.T) {
     node = node.Next()
   }
 }
+
+func BenchmarkPut(b *testing.B) {
+  c := NewCache(1000000)
+  const mod = 1000
+  for n := 0; n < b.N; n++ {
+    c.Put(rand.Uint32()%mod, "Hello, world!")
+    c.Get(rand.Uint32() % mod)
+  }
+}
+
+func BenchmarkSize(b *testing.B) {
+  const size = 100_000
+  const mod = 400_000
+  c := NewCache(size)
+  for n := 0; n < b.N; n++ {
+    c.Put(rand.Uint32()%mod, "Hello, world!")
+    c.Get(rand.Uint32() % size)
+  }
+}
